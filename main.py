@@ -1,8 +1,10 @@
 import requests
 import tkinter
 from tkinter import *
+from tkinter import messagebox
 import customtkinter as ct
 from PIL import ImageTk, Image
+import os
 
 class WeatherApp:
     def __init__(self, win):
@@ -32,22 +34,44 @@ class WeatherApp:
 
     def weatherfetch(self, name):
         city = name
-        api = 'url' + str(city) + '+Access_token'
-        json_data = requests.get(api).json()
-        self.coord = ct.CTkLabel(master=self.mainframe,width=200,height=30,text=f"Lat:{json_data['coord']['lat']} & Long:{json_data['coord']['lon']}",text_color="#464642",text_font='Calibri',corner_radius=8)
-        self.coord.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
+        try:
+            api = 'http://'+os.environ.get('SECRET_URL') + str(city) + os.environ.get('ACCESS_TOKEN')
+            json_data = requests.get(api).json()
+            self.coord = ct.CTkLabel(master=self.mainframe, width=200, height=30,
+                                     text=f"Lat:{json_data['coord']['lat']} & Long:{json_data['coord']['lon']}",
+                                     text_color="#464642", text_font=('Calibri',12,'bold'), corner_radius=8)
+            self.coord.place(relx=0.5, rely=0.1, anchor=tkinter.CENTER)
 
-        self.cityname = ct.CTkLabel(master=self.mainframe,width=400,height=30,text=f"{json_data['name']} ({json_data['sys']['country']})",text_color="#464642",text_font='Calibri',corner_radius=8)
-        self.cityname.place(relx=0.5, rely=0.2, anchor=tkinter.CENTER)
+            self.cityname = ct.CTkLabel(master=self.mainframe, width=400, height=30,
+                                        text=f"{json_data['name']} ({json_data['sys']['country']})",
+                                        text_color="#464642", text_font=('Calibri',12,'bold'), corner_radius=8)
+            self.cityname.place(relx=0.5, rely=0.2, anchor=tkinter.CENTER)
 
-        self.weathertype = ct.CTkLabel(master=self.mainframe,width=400,height=30,text=f"Weather: {json_data['weather'][0]['main']}",text_color="#464642",text_font='Calibri',corner_radius=8)
-        self.weathertype.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
+            self.weathertype = ct.CTkLabel(master=self.mainframe, width=400, height=30,
+                                           text=f"Weather: {json_data['weather'][0]['main']}", text_color="#464642",
+                                           text_font=('Calibri',12,'bold'), corner_radius=8)
+            self.weathertype.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
 
-        self.temp = ct.CTkLabel(master=self.mainframe,width=400,height=30,text=f"Temperature: {round(json_data['main']['temp'] - 273.15, 2)}, Feels Like: {round(json_data['main']['feels_like'] - 273.15, 2)}",text_color="#464642",text_font=('Calibri', 10),corner_radius=8)
-        self.temp.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+            self.temp = ct.CTkLabel(master=self.mainframe, width=400, height=30,
+                                    text=f"Temperature: {round(json_data['main']['temp'] - 273.15, 2)}, Feels Like: {round(json_data['main']['feels_like'] - 273.15, 2)}",
+                                    text_color="#464642", text_font=('Calibri', 10, 'bold'), corner_radius=8)
+            self.temp.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
 
-        self.minmax = ct.CTkLabel(master=self.mainframe,width=400,height=30,text=f"Minimum Temperature: {round(json_data['main']['temp_min'] - 273.15, 2)}, Maximum Temperature: {round(json_data['main']['temp_max'] - 273.15,2)}",text_color="#464642",text_font=('Calibri',10),corner_radius=8)
-        self.minmax.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+            self.minmax = ct.CTkLabel(master=self.mainframe, width=400, height=30,
+                                      text=f"Minimum Temperature: {round(json_data['main']['temp_min'] - 273.15, 2)}, Maximum Temperature: {round(json_data['main']['temp_max'] - 273.15, 2)}",
+                                      text_color="#464642", text_font=('Calibri', 10, 'bold'), corner_radius=8)
+            self.minmax.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+
+            self.weathericon = Image.open(f'Images/{json_data["weather"][0]["icon"]}.png')
+            self.weatherimage = ImageTk.PhotoImage(self.weathericon)
+
+            self.icon = ct.CTkLabel(master=self.mainframe, width=40, height=40, image=self.weatherimage,
+                                    corner_radius=8)
+            self.icon.place(relx=0.5, rely=0.7, anchor=tkinter.CENTER)
+
+        except:
+            messagebox.showwarning("Exception", "No such City")
+
 
 if __name__ == "__main__":
     win = Tk()
